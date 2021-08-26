@@ -934,6 +934,11 @@
   dependencies:
     "@types/superagent" "*"
 
+"@types/uuid@^8.3.1":
+  version "8.3.1"
+  resolved "https://registry.nlark.com/@types/uuid/download/@types/uuid-8.3.1.tgz?cache=0&sync_timestamp=1629709561611&other_urls=https%3A%2F%2Fregistry.nlark.com%2F%40types%2Fuuid%2Fdownload%2F%40types%2Fuuid-8.3.1.tgz#1a32969cf8f0364b3d8c8af9cc3555b7805df14f"
+  integrity sha1-GjKWnPjwNks9jIr5zDVVt4Bd8U8=
+
 "@types/yargs-parser@*":
   version "20.2.1"
   resolved "https://registry.nlark.com/@types/yargs-parser/download/@types/yargs-parser-20.2.1.tgz?cache=0&sync_timestamp=1629709781719&other_urls=https%3A%2F%2Fregistry.nlark.com%2F%40types%2Fyargs-parser%2Fdownload%2F%40types%2Fyargs-parser-20.2.1.tgz#3b9ce2489919d9e4fea439b76916abc34b2df129"
@@ -4835,7 +4840,7 @@ utils-merge@1.0.1:
   resolved "https://registry.nlark.com/utils-merge/download/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha1-n5VxD1CiZ5R7LMwSR0HBAoQn5xM=
 
-uuid@8.3.2:
+uuid@8.3.2, uuid@^8.3.2:
   version "8.3.2"
   resolved "https://registry.nlark.com/uuid/download/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha1-gNW1ztJxu5r2xEXyGhoExgbO++I=

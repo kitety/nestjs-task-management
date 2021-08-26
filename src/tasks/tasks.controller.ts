@@ -1,0 +1,27 @@
+import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Task } from './task.module';
+import { TasksService } from './tasks.service';
+
+@Controller('tasks')
+export class TasksController {
+  constructor(private tasksService: TasksService) {}
+
+  @Get()
+  getAllTasks(): Task[] {
+    return this.tasksService.getAllTasks();
+  }
+
+  @Post()
+  createTask(
+    @Body('title') title: string,
+    @Body('description') description: string,
+  ): Task {
+    return this.tasksService.createTask(title, description);
+  }
+  // @Post()
+  // createTask(@Body() body: { title: string; description: string }): Task {
+  //   console.log('body: ', body);
+  //   const { title, description } = body;
+  //   return this.tasksService.createTask(title, description);
+  // }
+}

@@ -39,8 +39,8 @@ export class TasksService {
     await task.save();
     return task;
   }
-  getTasks(filterDto: GetTasksFilterDto): Promise<Task[]> {
-    const tasks = this.tasksRepository.getTasks(filterDto);
+  getTasks(filterDto: GetTasksFilterDto, user: User): Promise<Task[]> {
+    const tasks = this.tasksRepository.getTasks(filterDto, user);
     return tasks;
   }
 }

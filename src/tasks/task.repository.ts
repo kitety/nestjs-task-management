@@ -1,3 +1,4 @@
+import { InternalServerErrorException, Logger } from '@nestjs/common';
 import { User } from 'src/auth/user.entity';
 import { EntityRepository, Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -7,6 +8,7 @@ import { Task } from './task.entity';
 
 @EntityRepository(Task)
 export class TaskRepository extends Repository<Task> {
+  private logger = new Logger('TaskRepository');
   // 获取任务呀
   async getTasks(filterDto: GetTasksFilterDto, user: User): Promise<Task[]> {
     const { status, search } = filterDto;
@@ -24,10 +26,19 @@ export class TaskRepository extends Repository<Task> {
         { search: `%${search}%` },
       );
     }
+    try {
+      const tasks = await query.getMany();
 
-    const tasks = await query.getMany();
-
-    return tasks;
+      return tasks;
+    } catch (error) {
+      this.logger.error(
+        `Failed to get tasks for user "${
+          user.username
+        }". Filters: ${JSON.stringify(filterDto)}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException();
+    }
   }
 
   // 创建任务
@@ -39,10 +50,20 @@ export class TaskRepository extends Repository<Task> {
     task.description = description;
     task.user = user;
     task.status = TaskStatus.OPEN;
-    await task.save();
-    // 删除username
-    delete task.user;
+    try {
+      await task.save();
+      // 删除username
+      delete task.user;
 
-    return task;
+      return task;
+    } catch (error) {
+      this.logger.error(
+        `Failed to create tasks for user "${
+          user.username
+        }". createTaskDto: ${JSON.stringify(CreateTaskDto)}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException();
+    }
   }
 }

@@ -31,6 +31,7 @@ export class UserRepository extends Repository<User> {
 
   async signUp(authCredentialsDto: AuthCredentialsDto): Promise<void> {
     const { username, password } = authCredentialsDto;
+    console.log(' username, password : ', username, password);
 
     const { hashedPassword, salt } = await this.hashPassword(password);
 

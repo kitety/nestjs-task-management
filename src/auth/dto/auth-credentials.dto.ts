@@ -8,7 +8,7 @@ export class AuthCredentialsDto {
   username: string;
 
   @IsString()
-  @MinLength(4)
+  @MinLength(2)
   @MaxLength(20, { message: '密码长度不能超过20' })
   password: string;
 }

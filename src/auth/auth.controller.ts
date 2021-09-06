@@ -1,11 +1,13 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
-  UseGuards,
+  Response,
   ValidationPipe,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { GetUser } from './get-user.decorator';
@@ -16,25 +18,34 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('/signup')
-  signUp(@Body(ValidationPipe) authCredentialsDto: AuthCredentialsDto) {
-    return this.authService.signUp(authCredentialsDto);
-  }
-
-  @Post('/signIn')
-  signIn(
+  async signUp(
     @Body(ValidationPipe) authCredentialsDto: AuthCredentialsDto,
-  ): Promise<{ accessToken: string }> {
-    return this.authService.signIn(authCredentialsDto);
+    @Response() res,
+  ) {
+    await this.authService.signUp(authCredentialsDto);
+    res.status(200).json({ code: '0' });
   }
 
-  @Post('/test')
-  @UseGuards(AuthGuard())
-  test(@GetUser() user: User) {
-    console.log('user: ', user);
+  @Post('/signin')
+  async signIn(
+    @Body(ValidationPipe) authCredentialsDto: AuthCredentialsDto,
+    @Response() res,
+  ) {
+    const accessToken = await this.authService.signIn(authCredentialsDto);
+    if (!accessToken) {
+      res.status(200).json({ code: '1', message: '登陆失败' });
+      return;
+    }
+    res.cookie('jwtToken', accessToken, {
+      maxAge: 24 * 60 * 60 * 1000,
+      httpOnly: true,
+    });
+    res.status(200).json({ code: '0' });
   }
-  // @Post('/test')
-  // @UseGuards(AuthGuard())
-  // test(@Req() req) {
-  //   console.log('req: ', req);
-  // }
+
+  @Post('/getUser')
+  getUser(@Request() req, @Response() res, @GetUser() user: User) {
+    console.log('user: ', user);
+    res.status(200).json({ code: '0' });
+  }
 }

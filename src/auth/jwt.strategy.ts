@@ -6,8 +6,9 @@ import { JwtPayload } from './jwt-payload.interface';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import * as config from 'config';
+import { JWT_CONFIG } from 'src/constants';
 
-const jwt = config.get('jwt');
+const jwt = config.get(JWT_CONFIG);
 
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(

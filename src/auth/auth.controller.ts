@@ -6,8 +6,10 @@ import {
   Response,
   ValidationPipe,
 } from '@nestjs/common';
+import { JWT_KEYWORD, STATUS_ENUM } from 'src/constants';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
+import { ResetCredentialsDto } from './dto/reset-credentials.dto';
 import { GetUser } from './get-user.decorator';
 
 @Controller('auth')
@@ -19,8 +21,11 @@ export class AuthController {
     @Body(ValidationPipe) authCredentialsDto: AuthCredentialsDto,
     @Response() res,
   ) {
-    await this.authService.signUp(authCredentialsDto);
-    res.status(200).json({ code: '0' });
+    const data = await this.authService.signUp(authCredentialsDto);
+    res.status(200).json({
+      c: data.success ? STATUS_ENUM.SUCCESS : STATUS_ENUM.ERROR,
+      m: data.m,
+    });
   }
 
   @Post('/signin')
@@ -28,36 +33,51 @@ export class AuthController {
     @Body(ValidationPipe) authCredentialsDto: AuthCredentialsDto,
     @Response() res,
   ) {
-    const accessToken = await this.authService.signIn(authCredentialsDto);
-    if (!accessToken) {
-      res.status(200).json({ code: '1', message: '登陆失败' });
-      return;
+    const signData = await this.authService.signIn(authCredentialsDto);
+    if (!signData.success) {
+      return res.status(200).json({ c: STATUS_ENUM.ERROR, m: signData.m });
     }
-    res.cookie('jwt', accessToken, {
+    res.cookie(JWT_KEYWORD, signData.data, {
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true,
     });
-    res.status(200).json({ code: '0' });
+    res.status(200).json({ c: STATUS_ENUM.SUCCESS });
   }
 
   @Post('/logout')
   async logOut(@Response() res) {
-    res.clearCookie('jwt');
-    res.status(200).json({ code: '0' });
+    res.clearCookie(JWT_KEYWORD);
+    res.status(200).json({ c: STATUS_ENUM.SUCCESS });
   }
 
   @Get('/getUser')
   getUser(@Response() res, @GetUser() username: string) {
-    res.status(200).json({ code: '0', username: username || null });
+    res.status(200).json({
+      c: STATUS_ENUM.SUCCESS,
+      d: { username: username || null },
+    });
   }
-  @Post('/reset')
-  resetPassword(
-    @Body(ValidationPipe) authCredentialsDto: AuthCredentialsDto,
+  @Get('/reset')
+  async resetPassword(
+    @Body(ValidationPipe) authCredentialsDto: ResetCredentialsDto,
     @Response() res,
     @GetUser() username: string,
   ) {
+    // 没有用户名
     if (!username) {
-      res.status(200).json({ code: '1', m: 'Please login first' });
+      res.status(200).json({ c: '1', m: 'Please login first' });
+    } else {
+      const data = await this.authService.resetPassword(
+        authCredentialsDto,
+        username,
+      );
+      if (data.success) {
+        res.clearCookie(JWT_KEYWORD);
+      }
+      res.status(200).json({
+        c: data.success ? STATUS_ENUM.SUCCESS : STATUS_ENUM.ERROR,
+        m: data.m,
+      });
     }
   }
 }

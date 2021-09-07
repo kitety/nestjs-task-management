@@ -1,11 +1,7 @@
-import {
-  ConflictException,
-  InternalServerErrorException,
-} from '@nestjs/common';
 import { EntityRepository, Repository } from 'typeorm';
-import { AuthCredentialsDto } from './dto/reset-credentials.dto';
 import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
+import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
@@ -28,10 +24,30 @@ export class UserRepository extends Repository<User> {
     }
     return null;
   }
-
-  async signUp(authCredentialsDto: AuthCredentialsDto): Promise<void> {
+  async resetUserPassword(
+    authCredentialsDto: AuthCredentialsDto,
+  ): Promise<boolean> {
     const { username, password } = authCredentialsDto;
-    console.log(' username, password : ', username, password);
+    const user = await this.findOne({ username });
+
+    const { hashedPassword, salt } = await this.hashPassword(password);
+
+    user.username = username;
+    user.salt = salt;
+    user.password = hashedPassword;
+
+    try {
+      await user.save();
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async signUp(
+    authCredentialsDto: AuthCredentialsDto,
+  ): Promise<{ success: boolean; m: string }> {
+    const { username, password } = authCredentialsDto;
 
     const { hashedPassword, salt } = await this.hashPassword(password);
 
@@ -42,12 +58,13 @@ export class UserRepository extends Repository<User> {
 
     try {
       await user.save();
+      return { success: true, m: '' };
     } catch (error) {
       const existCode = '23505';
       if (error.code === existCode) {
-        throw new ConflictException('Username already exists');
+        return { success: false, m: 'Username already exists' };
       } else {
-        throw new InternalServerErrorException();
+        return { success: false, m: 'server interface error' };
       }
     }
   }

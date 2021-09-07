@@ -7,8 +7,9 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { UserRepository } from './user.repository';
 import * as config from 'config';
+import { JWT_CONFIG } from 'src/constants';
 
-const jwt = config.get('jwt');
+const jwt = config.get(JWT_CONFIG);
 
 @Module({
   imports: [

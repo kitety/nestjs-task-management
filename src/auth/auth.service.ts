@@ -6,6 +6,10 @@ import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { ResetCredentialsDto } from './dto/reset-credentials.dto';
 import { JwtPayload } from './jwt-payload.interface';
 import { UserRepository } from './user.repository';
+import * as config from 'config';
+import * as jwt from 'jsonwebtoken';
+
+const jwtConfig = config.get('jwt');
 
 @Injectable()
 export class AuthService {
@@ -25,12 +29,11 @@ export class AuthService {
   async signIn(
     authCredentialsDto: AuthCredentialsDto,
   ): Promise<{ success: boolean; m: string; data?: string }> {
-    const username = await this.userRepository.validateUserPassword(
-      authCredentialsDto,
-    );
+    const { success, m, username } =
+      await this.userRepository.validateUserPassword(authCredentialsDto);
 
-    if (!username) {
-      return { success: false, m: ' password not valid' };
+    if (!success) {
+      return { success: false, m };
     }
 
     const payload: JwtPayload = { username };
@@ -46,11 +49,14 @@ export class AuthService {
     username,
   ): Promise<{ success: boolean; m: string }> {
     let newAuth = { username, password: authCredentialsDto.oldPassword };
-    const resUserName = await this.userRepository.validateUserPassword(newAuth);
-    if (!resUserName) {
-      return { success: false, m: 'Old password is incorrect' };
+    const { success, m } = await this.userRepository.validateUserPassword(
+      newAuth,
+    );
+    // 验证失败
+    if (!success) {
+      return { success: false, m };
     }
-
+    // 构造新的数据
     newAuth = { username, password: authCredentialsDto.newPassword };
 
     const isSuccess = await this.userRepository.resetUserPassword(newAuth);
@@ -59,5 +65,17 @@ export class AuthService {
     } else {
       return { success: false, m: 'resetError' };
     }
+  }
+
+  async validateUserToken(data: { jwt: string }): Promise<string> {
+    const jwtStr = data?.jwt || '';
+    const userData = (await jwt.decode(
+      jwtStr,
+      jwtConfig.secret,
+    )) as unknown as {
+      username: string;
+    };
+
+    return userData?.username;
   }
 }
